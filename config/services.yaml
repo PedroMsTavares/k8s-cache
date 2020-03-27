@@ -1,0 +1,7 @@
+Services:
+- name: example # Name of the service
+  url: https://reqres.in/api/users?page=2 # Url that will be fetched
+  path: /example  # Path where k8s-cache will serve the result
+  headers: # Any headers required for the request
+    - key: "MyHeader"
+      value: "Test"
