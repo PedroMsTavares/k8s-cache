@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"time"
 
 	"gopkg.in/yaml.v2"
@@ -63,7 +64,8 @@ func ProcessConfig() error {
 			fmt.Println(err)
 			return err
 		}
-		configmapClient := k8sClient.CoreV1().ConfigMaps("k8s-cache")
+		namespace := os.Getenv("namespace")
+		configmapClient := k8sClient.CoreV1().ConfigMaps(namespace)
 
 		configmap := &corev1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
