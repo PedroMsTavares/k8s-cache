@@ -64,7 +64,7 @@ func ProcessConfig() error {
 			fmt.Println(err)
 			return err
 		}
-		namespace := os.Getenv("namespace")
+		namespace := os.Getenv("NAMESPACE")
 		configmapClient := k8sClient.CoreV1().ConfigMaps(namespace)
 
 		configmap := &corev1.ConfigMap{
