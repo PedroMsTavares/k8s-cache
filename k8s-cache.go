@@ -69,7 +69,7 @@ func ProcessConfig() error {
 
 	// get service by service
 	for _, service := range services.Services {
-		log.Infof("Processing service %s", service.Name)
+		log.Infof("Start service %s sync...", service.Name)
 		body, err := GetRequest(service)
 
 		if err != nil {
@@ -97,15 +97,14 @@ func ProcessConfig() error {
 
 		if err != nil {
 			log.Info(err)
-			//return err
+			_, err = configmapClient.Create(configmap)
 		}
-		_, err = configmapClient.Create(configmap)
 
 		if err != nil {
 			log.Info(err)
-			return err
+			//return err
 		}
-
+		log.Infof("Service %s synced", service.Name)
 	}
 	return nil
 }
