@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -18,52 +19,69 @@ func ConfigParse() (s Services, err error) {
 	services := Services{}
 	data, err := ioutil.ReadFile("config/services.yaml")
 	if err != nil {
-		panic(err)
+		log.Fatal("Can't read config file")
 	}
 	err = yaml.Unmarshal([]byte(data), &services)
 	if err != nil {
-		fmt.Println(err)
+		log.Error(err)
 	}
 	return services, err
 }
 
+func GetRequest(service *Service) (body []byte, err error) {
+
+	httpClient := &http.Client{}
+	req, err := http.NewRequest("GET", service.URL, nil)
+	for _, header := range service.Headers {
+		req.Header.Add(header.Key, header.Value)
+	}
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+	if resp.StatusCode != 200 {
+		log.WithFields(log.Fields{
+			"URL":          service.URL,
+			"ResponseCode": resp.StatusCode,
+		}).Errorf("Failed to fetch service %s", service.Name)
+
+		return nil, fmt.Errorf("Failed to fetch service %s", service.Name)
+	}
+	defer resp.Body.Close()
+	body, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+	return body, err
+
+}
+
 // ProcessConfig Process all the configs and create the configmaps
 func ProcessConfig() error {
-	fmt.Println("Start to processing")
+	log.Info("Start to process services")
 	services, err := ConfigParse()
 	if err != nil {
-		fmt.Println(err)
+		log.Error(err)
 		return err
 	}
-	httpClient := &http.Client{}
 
 	// get service by service
 	for _, service := range services.Services {
-		req, err := http.NewRequest("GET", service.URL, nil)
-		for _, header := range service.Headers {
-			req.Header.Add(header.Key, header.Value)
-		}
-		resp, err := httpClient.Do(req)
-		if err != nil {
-			fmt.Println(err)
-			return err
-		}
-		if resp.StatusCode != 200 {
-			fmt.Println("Failed to fetch service %s", service.Name)
-			return err
-		}
-		defer resp.Body.Close()
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			fmt.Println(err)
-			return err
-		}
+		log.Infof("Processing service %s", service.Name)
+		body, err := GetRequest(service)
 
+		if err != nil {
+			continue
+		}
 		k8sClient, err := ConfigK8s()
 		if err != nil {
-			fmt.Println(err)
-			return err
+			log.Error(err)
+			continue
 		}
+
+		// get the namespage where the cm will be created
 		namespace := os.Getenv("NAMESPACE")
 		configmapClient := k8sClient.CoreV1().ConfigMaps(namespace)
 
@@ -78,18 +96,17 @@ func ProcessConfig() error {
 		_, err = configmapClient.Update(configmap)
 
 		if err != nil {
-			fmt.Println(err)
+			log.Info(err)
 			//return err
 		}
 		_, err = configmapClient.Create(configmap)
 
 		if err != nil {
-			fmt.Println(err)
+			log.Info(err)
 			return err
 		}
 
 	}
-	fmt.Println(err)
 	return nil
 }
 
@@ -97,6 +114,6 @@ func ProcessConfig() error {
 func SyncDaemon() {
 	for {
 		go ProcessConfig()
-		<-time.After(5 * time.Minute)
+		<-time.After(2 * time.Minute)
 	}
 }

@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/gorilla/mux"
+	log "github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -14,7 +15,7 @@ func ServiceHandler(w http.ResponseWriter, r *http.Request) {
 
 	k8sClient, err := ConfigK8s()
 	if err != nil {
-		fmt.Println(err)
+		log.Error(err)
 	}
 	namespace := os.Getenv("NAMESPACE")
 	rcm, err := k8sClient.CoreV1().ConfigMaps(namespace).Get(vars["servicename"], metav1.GetOptions{})
