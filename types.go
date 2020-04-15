@@ -3,6 +3,7 @@ package main
 type Service struct {
 	Name    string    `yaml:"name"`
 	URL     string    `yaml:"url"`
+	Path    string    `yaml:"path"`
 	Headers []*Header `yaml:"headers"`
 }
 

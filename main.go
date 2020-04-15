@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 
@@ -18,11 +19,32 @@ func init() {
 
 }
 
+var Config map[string]string
+
 func main() {
-	go SyncDaemon()
+
 	r := mux.NewRouter()
-	r.HandleFunc("/service/{servicename}", ServiceHandler)
+	//r.HandleFunc("/service/{servicename}", ServiceHandler)
+
+	// Register the diferent paths
+
+	config, err := ConfigParse()
+	if err != nil {
+		log.Fatal("Can't parse config")
+	}
+	Config = make(map[string]string)
+	for _, service := range config.Services {
+
+		r.HandleFunc(service.Path, ServiceHandler)
+		fmt.Println(service.Path)
+
+		Config[service.Path] = service.Name
+	}
+	fmt.Println(Config)
+
 	r.HandleFunc("/", RootHandler)
+
+	go SyncDaemon()
 	http.ListenAndServe(":8080", r)
 
 }

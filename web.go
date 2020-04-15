@@ -5,27 +5,25 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func ServiceHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-
+	//	vars := mux.Vars(r)
 	k8sClient, err := ConfigK8s()
 	if err != nil {
 		log.Error(err)
 	}
 	namespace := os.Getenv("NAMESPACE")
-	rcm, err := k8sClient.CoreV1().ConfigMaps(namespace).Get(vars["servicename"], metav1.GetOptions{})
+	rcm, err := k8sClient.CoreV1().ConfigMaps(namespace).Get(Config[r.URL.Path], metav1.GetOptions{})
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
 	} else {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		bodyString := string(rcm.BinaryData[vars["servicename"]])
+		bodyString := string(rcm.BinaryData[Config[r.URL.Path]])
 		fmt.Fprintf(w, bodyString)
 	}
 }
