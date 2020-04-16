@@ -1,7 +1,7 @@
 # k8s-Cache
 [![Go Report Card](https://goreportcard.com/badge/github.com/PedroMsTavares/k8s-cache)](https://goreportcard.com/report/github.com/PedroMsTavares/k8s-cache)
 
-The intent of this project is to create a reverse proxy with cache taking advantage of kubernetes configmaps.
+Cache in kubernetes using configmaps
 
 # How does it work
 
@@ -27,11 +27,14 @@ In the example above, the app:
 - exposes the edpoint `http://localhost:8080/myendpoint` with the data
 - refresh's the data every 2 minutes
 
-## Note
+## Notes
 
-This only permits cache for payloads up to 1Mb
+ConfigMaps only allow up to 1Mb of data. Considering this all the data is saved in binary to maximize the capacity.
+
+By default the app will use the namespace `kube-system` , if you want to use your own namespace, set the environment variable `NAMESPACE` with the name of your namespace.
 
 ### TODO
 
-- [] Add retry on failure
-- [] Testing
+- [ ] Add retry on failure
+- [x] Docs
+- [ ] Testing
