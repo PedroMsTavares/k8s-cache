@@ -11,7 +11,7 @@ Given an URL and config, it will fetch the url, save it in a configmap and updat
 
 Your config has to be located in `config/services.yaml` .
 
-```
+```yaml
 Services:
 - name: example # Name of the service
   url: https://reqres.in/api/users?page=2 # Url that will be fetched
