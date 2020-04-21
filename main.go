@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 
@@ -20,8 +19,12 @@ func init() {
 }
 
 var config map[string]string
+var ready bool
 
 func main() {
+
+	//readiness probe false by default
+	ready = false
 
 	// Parse /config/service.yaml
 	c, err := ConfigParse()
@@ -38,13 +41,14 @@ func main() {
 	for _, service := range c.Services {
 
 		r.HandleFunc(service.Path, ServiceHandler)
-		fmt.Println(service.Path)
 
 		config[service.Path] = service.Name
 	}
 
 	// Register default route
 	r.HandleFunc("/", RootHandler)
+	// Register ready route
+	r.HandleFunc("/ready", ReadyHandler)
 
 	// Start the sync daemon
 	go SyncDaemon()

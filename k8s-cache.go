@@ -68,16 +68,17 @@ func ProcessConfig() error {
 		return err
 	}
 
+	k8sClient, err := ConfigK8s()
+		if err != nil {
+			log.Error(err)
+		}
+
+
 	// get service by service
 	for _, service := range services.Services {
 		log.Infof("Start service %s sync...", service.Name)
 		body, err := GetRequest(service)
 
-		if err != nil {
-			log.Error(err)
-			continue
-		}
-		k8sClient, err := ConfigK8s()
 		if err != nil {
 			log.Error(err)
 			continue
