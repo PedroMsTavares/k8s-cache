@@ -20,7 +20,12 @@ func ServiceHandler(w http.ResponseWriter, r *http.Request) {
 		log.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
 	} else {
-		w.Header().Set("Content-Type", "application/json")
+		contentType := r.Header.Get("Content-Type")
+		if (len(contentType) == 0) {
+			contentType = "application/json"
+		}
+
+		w.Header().Set("Content-Type", contentType)
 		w.WriteHeader(http.StatusOK)
 		bodyString := string(rcm.BinaryData[config[r.URL.Path]])
 		fmt.Fprintf(w, bodyString)
