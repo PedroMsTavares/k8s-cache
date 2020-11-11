@@ -80,7 +80,7 @@ func ReadyHandler(w http.ResponseWriter, r *http.Request) {
 
 //RootHandler default route
 func RootHandler(w http.ResponseWriter, r *http.Request) {
-
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, "Hello I am a cache for you !")
+	w.Header().Add("Content-Type", "text/html")
+	fmt.Fprintf(w, "<h1>K8s-cache</h1><a href='https://github.com/PedroMsTavares/k8s-cache'>https://github.com/PedroMsTavares/k8s-cache</a>")
 }
